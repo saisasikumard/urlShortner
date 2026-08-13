@@ -1,13 +1,14 @@
 package com.zoro.urlShortner.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
-@Document(collation = "urls")
+@Document(collection  = "urls")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,7 +17,10 @@ import java.time.LocalDateTime;
 public class Url {
     @Id
     String id;
+    @JsonProperty("shortUrl")
+    @Indexed(unique = true)
     String shortUrl;
+    @JsonProperty("longUrl")
     String longUrl;
     LocalDateTime creatDate;
     LocalDateTime updatDate;
