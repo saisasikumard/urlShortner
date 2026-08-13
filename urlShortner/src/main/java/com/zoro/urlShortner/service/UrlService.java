@@ -1,6 +1,8 @@
 package com.zoro.urlShortner.service;
 
-import com.mongodb.DuplicateKeyException;
+
+
+import com.zoro.urlShortner.customExceptions.DuplicateUrlException;
 import com.zoro.urlShortner.dto.UrlRequest;
 import com.zoro.urlShortner.dto.UrlResponse;
 import com.zoro.urlShortner.entity.Url;
@@ -9,6 +11,7 @@ import com.zoro.urlShortner.utility.TraceUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
 import java.time.LocalDateTime;
@@ -43,19 +46,25 @@ public class UrlService {
                     .build();
 
             TraceUtil.createSpan();
-            log.info("saving into db");
-            Url savedUrl = urlRepo.save(urlObj);
-            log.info("saved in DB");
-            TraceUtil.modifySpan(serviceSpanId);
-            log.info("Url saved successfully");
-            return UrlResponse.builder().
-                    id(savedUrl.getId())
-                    .shortUrl(savedUrl.getShortUrl())
-                    .longUrl(savedUrl.getLongUrl()).build();
+
+                log.info("saving into db");
+                Url savedUrl = urlRepo.save(urlObj);
+                log.info("saved in DB");
+                TraceUtil.modifySpan(serviceSpanId);
+                log.info("Url saved successfully");
+                return UrlResponse.builder().
+                        id(savedUrl.getId())
+                        .shortUrl(savedUrl.getShortUrl())
+                        .longUrl(savedUrl.getLongUrl()).build();
+
+
         }
-        catch (DuplicateKeyException e){
-            log.error("Duplicate shortUrl found for {}",urlRequest.getShortUrl());
-            throw new RuntimeException("Duplicate Key found for shortUrl ",e);
+        catch (DuplicateKeyException e) {
+            log.error("Duplicate shortUrl found for {}", urlRequest.getShortUrl());
+
+            throw new DuplicateUrlException(
+                    "Short URL already exists: " + urlRequest.getShortUrl()
+            );
         }
         catch(Exception e){
             log.error("Exception occur while creating short Url",e);
