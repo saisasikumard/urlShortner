@@ -17,7 +17,7 @@ public class TraceUtil {
     }
     public static String  createTrace(){
         String traceId="T"+UUID.randomUUID().toString().substring(0,8);
-        MDC.put("spanId", traceId);
+        MDC.put("traceId", traceId);
         return traceId;
     }
 }
