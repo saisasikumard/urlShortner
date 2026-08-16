@@ -3,6 +3,7 @@ package com.zoro.urlShortner.service;
 
 
 import com.zoro.urlShortner.customExceptions.DuplicateUrlException;
+import com.zoro.urlShortner.customExceptions.UrlNotFoundException;
 import com.zoro.urlShortner.dto.UrlRequest;
 import com.zoro.urlShortner.dto.UrlResponse;
 import com.zoro.urlShortner.entity.Url;
@@ -85,11 +86,47 @@ public class UrlService {
 
             TraceUtil.modifySpan(serviceSpan);
             log.info("service method completed.");
+            if(url==null){
+                throw new UrlNotFoundException("No Url found");
+            }
             return url;
+        }
+        catch(UrlNotFoundException ex){
+            throw new UrlNotFoundException(ex.getMessage());
         }
         catch (Exception e){
             log.error("Exception occur while fetching the longUrl",e);
             throw new RuntimeException("Exception occur while fetching the longUrl",e);
+        }
+    }
+
+    public boolean deleteUrl(String shortUrl){
+        try {
+            String serviceSpanId = TraceUtil.createSpan();
+            log.info("entered service method");
+            TraceUtil.createSpan();
+            log.info("Started Deleting the shortUrl");
+            if(urlRepo.findByShortUrl(shortUrl)!=null){
+                log.info("Url found in DB");
+                urlRepo.deleteByShortUrl(shortUrl);
+            }
+            else{
+                log.warn("No url found in DB");
+                throw new UrlNotFoundException("No url found for this request.");
+            }
+
+            TraceUtil.modifySpan(serviceSpanId);
+
+            log.info("Deleted ShortUrl");
+            return true;
+        }
+        catch (UrlNotFoundException e){
+            log.error("Exception Occur UrlNotFoundException");
+            throw new UrlNotFoundException(e.getMessage());
+        }
+        catch (Exception e){
+            log.error("Exception Occur Exception");
+            throw new RuntimeException(e.getMessage());
         }
     }
 }
